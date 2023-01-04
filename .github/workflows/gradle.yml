@@ -24,7 +24,7 @@ jobs:
           java-version: 11
 
       - name: Build with Gradle
-        uses: gradle/gradle-build-action@3
+        uses: gradle/gradle-build-action@v3
         with:
           gradle-version: current
           arguments: build
