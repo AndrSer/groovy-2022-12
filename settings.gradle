@@ -1,0 +1,3 @@
+rootProject.name = 'groovy-2022-12'
+include 'hw01-gradle'
+
