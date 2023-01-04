@@ -33,7 +33,7 @@ jobs:
       uses: gradle/gradle-build-action@v2
     
     - name: Gradle init
-      run: gradlew init
+      run: ./gradlew init
     
     - name: Execute Gradle build
       run: ./gradlew build
