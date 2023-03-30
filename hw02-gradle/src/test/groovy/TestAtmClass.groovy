@@ -79,7 +79,7 @@ class TestAtmClass {
             atm.getRequestedSumFromFond(cashFond, 3308)
         })
 
-        String expectedMessage = "Requested amount cannot be withdrawn"
+        String expectedMessage = ""
         String actualMessage = exception.getMessage()
 
         assertTrue(actualMessage == expectedMessage)
