@@ -1,0 +1,98 @@
+
+abstract class CodegenTask extends DefaultTask {
+
+    @Input
+    abstract Property<String> getPackageName()
+
+    @OutputDirectory
+    abstract DirectoryProperty getBuildDir()
+
+    @Input
+    abstract Property<String> getClazzName()
+
+    @Input
+    abstract Property<String> getPropertyFieldValueInClass()
+
+    @TaskAction
+    def initTask() {
+        def outputTextClass = """class ${clazzName.get()} {
+                                             def propertyName = ${propertyFieldValueInClass.get()}                                        
+                                        }"""
+
+        project.mkdir(getBuildDir().dir(getPackageName().get()))
+        def srcFile = new File(getBuildDir().dir(getPackageName().get()).get().asFile,
+                "${clazzName.get()}.groovy")
+        srcFile.setText(outputTextClass)
+    }
+}
+
+interface CodegenPluginExtension {
+    Property<String> getPackageName()
+    DirectoryProperty getBuildDir()
+    Property<String> getClazzName()
+    Property<String> getPropertyFieldValueInClass()
+}
+
+class PluginGradle implements Plugin<Project> {
+
+    @Override
+    void apply(Project project) {
+        def extension = project.getExtensions()
+                .create("simpleCodegen", CodegenPluginExtension)
+
+        def codegenTask = project.tasks
+                .register("codeGenTask", CodegenTask) {
+                    group = "Code generation"
+                    description = "Generate a simple class with property"
+                    packageName = extension.getPackageName()
+                    buildDir = extension.getBuildDir()
+                    clazzName = extension.getClazzName()
+                    propertyFieldValueInClass = extension.getPropertyFieldValueInClass()
+                }
+
+        project.tasks.withType(GroovyCompile).configureEach {
+            dependsOn(codegenTask)
+        }
+
+        project.afterEvaluate {
+            (project.extensions["sourceSets"] as SourceSetContainer)["main"]
+                    .java
+                    .srcDir(extension.getBuildDir())
+        }
+    }
+}
+
+plugins {
+    id 'java-gradle-plugin'
+    id 'groovy'
+}
+
+apply plugin: PluginGradle
+
+simpleCodegen {
+    packageName = "org.example.result"
+    clazzName = "CodeGenClass"
+    propertyFieldValueInClass = "realValue"
+    buildDir = layout.buildDirectory.dir("src-gen")
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation gradleApi()
+    implementation 'org.codehaus.groovy:groovy-all:3.0.10'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+
+
